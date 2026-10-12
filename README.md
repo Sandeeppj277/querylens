@@ -35,60 +35,8 @@ QueryLens bridges the gap between non-technical users and relational databases. 
 
 ---
 
-## 🚀 Quickstart (Local Run)
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/YOUR_USERNAME/querylens.git
-cd querylens
-```
 
-### 2. Create and activate a virtual environment
-```bash
-python -m venv venv
-# On Windows:
-.\venv\Scripts\activate
-# On Linux/macOS:
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-```bash
-pip install -r backend/requirements.txt
-```
-
-### 4. Configure environment variables
-Create a `.env` file in the project root:
-```env
-GEMINI_API_KEY=your_actual_gemini_api_key_here
-GEMINI_MODEL=gemini-3.8-flash
-```
-
-### 5. Seed the database (First time only)
-```bash
-python -c "import sys; sys.path.insert(0, 'backend'); from app.seed import seed; seed()"
-```
-
-### 6. Run the server
-```bash
-python -m uvicorn app.main:app --app-dir backend --reload --port 8000
-```
-Open **`http://localhost:8000`** in your browser.
-
----
-
-## 🌐 Live Cloud Deployment
-
-This project is deployed live on Render:
-👉 **[https://querylens-wu6i.onrender.com/](https://querylens-wu6i.onrender.com/)**
-
-### Deployment Configuration (Render)
-- **Environment**: `Python 3`
-- **Build Command**:
-  ```bash
-  pip install -r backend/requirements.txt && python -c "import sys; sys.path.insert(0, 'backend'); from app.seed import seed; seed()"
-  ```
-- **Start Command**:
   ```bash
   python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
   ```
