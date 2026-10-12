@@ -9,6 +9,7 @@ uvicorn[standard]
 sqlalchemy
 
 # LLM Integration
+google-genai
 google-generativeai
 
 # Environment & Config
