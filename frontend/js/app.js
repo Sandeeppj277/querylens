@@ -3,7 +3,7 @@
  * Handles API calls, dynamic chart rendering, table generation, and schema exploration.
  */
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = '/api';
 let activeChart = null;
 let currentChartData = null;
 
@@ -345,31 +345,41 @@ async function fetchSchema() {
 
     document.getElementById('modalSchemaContent').innerText = schemaSql;
 
-    // Parse simple table names and display in sidebar explorer
+    // Parse table names and columns robustly
     const explorer = document.getElementById('schemaExplorer');
     explorer.innerHTML = '';
 
-    const tables = schemaSql.split(/CREATE TABLE\s+/i).slice(1);
-    tables.forEach(tableChunk => {
-      const match = tableChunk.match(/^([a-zA-Z0-9_]+)\s*\(([\s\S]*?)\);/);
-      if (match) {
-        const tableName = match[1];
-        const rawCols = match[2].trim().split('\n').map(l => l.trim().replace(/,$/, ''));
-        
-        const card = document.createElement('div');
-        card.className = 'schema-table-item';
-        card.innerHTML = `
-          <div class="schema-table-header">
-            <i class="fa-solid fa-table"></i> ${tableName}
-          </div>
-          <div class="schema-column-list">
-            ${rawCols.slice(0, 5).map(c => `<div>${escapeHtml(c)}</div>`).join('')}
-            ${rawCols.length > 5 ? `<div style="color:var(--text-muted)">+ ${rawCols.length - 5} more columns...</div>` : ''}
-          </div>
-        `;
-        explorer.appendChild(card);
-      }
-    });
+    // Match CREATE TABLE <name> ( ... );
+    const tableRegex = /CREATE TABLE\s+([a-zA-Z0-9_]+)\s*\(([\s\S]*?)\);/gi;
+    let match;
+    let count = 0;
+
+    while ((match = tableRegex.exec(schemaSql)) !== null) {
+      count++;
+      const tableName = match[1];
+      const rawBody = match[2];
+      const colLines = rawBody
+        .split('\n')
+        .map(l => l.trim().replace(/,$/, ''))
+        .filter(l => l.length > 0 && !l.toUpperCase().startsWith('FOREIGN KEY'));
+
+      const card = document.createElement('div');
+      card.className = 'schema-table-item';
+      card.innerHTML = `
+        <div class="schema-table-header">
+          <i class="fa-solid fa-table"></i> ${escapeHtml(tableName)}
+        </div>
+        <div class="schema-column-list">
+          ${colLines.slice(0, 5).map(c => `<div>${escapeHtml(c)}</div>`).join('')}
+          ${colLines.length > 5 ? `<div style="color:var(--text-muted); font-size: 10px;">+ ${colLines.length - 5} more columns...</div>` : ''}
+        </div>
+      `;
+      explorer.appendChild(card);
+    }
+
+    if (count === 0) {
+      explorer.innerHTML = '<div style="color:var(--text-muted); font-size:12px; padding:8px;">No tables found in database.</div>';
+    }
   } catch (err) {
     console.error('Schema fetch failed:', err);
   }
