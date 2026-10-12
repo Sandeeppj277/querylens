@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QueryLens — Natural Language to SQL Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Highlight.js for beautiful SQL code formatting and syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Ambient background lighting orbs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar glass-panel">
+      <div class="brand">
+        <div class="logo-icon">
+          <i class="fa-solid fa-brain-circuit"></i>
+        </div>
+        <div>
+          <h2>QueryLens</h2>
+          <p class="tagline">NL ➔ SQL ➔ Insights</p>
+        </div>
+      </div>
+
+      <nav class="nav-tabs">
+        <button class="tab-btn active" id="tabHistoryBtn" onclick="switchSidebarTab('history')">
+          <i class="fa-solid fa-clock-rotate-left"></i> History
+        </button>
+        <button class="tab-btn" id="tabSchemaBtn" onclick="switchSidebarTab('schema')">
+          <i class="fa-solid fa-database"></i> Schema
+        </button>
+      </nav>
+
+      <!-- History Tab Content -->
+      <div class="sidebar-content" id="historyTab">
+        <div class="sidebar-header-row">
+          <span>Recent Queries</span>
+          <button class="icon-btn-small" onclick="fetchHistory()" title="Refresh History">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="empty-state">No queries executed yet</div>
+        </div>
+      </div>
+
+      <!-- Schema Tab Content -->
+      <div class="sidebar-content hidden" id="schemaTab">
+        <div class="sidebar-header-row">
+          <span>Active Tables</span>
+          <button class="icon-btn-small" onclick="fetchSchema()" title="Refresh Schema">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+        <div class="schema-explorer" id="schemaExplorer">
+          <div class="loading-spinner-sm"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span>FastAPI Live</span>
+        </div>
+        <span class="db-badge">SQLite DB</span>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar glass-panel">
+        <div class="breadcrumbs">
+          <span class="crumb">Database Explorer</span>
+          <span class="crumb-separator">/</span>
+          <span class="crumb active">Conversational SQL</span>
+        </div>
+        <div class="header-actions">
+          <button class="glass-btn-secondary" onclick="openSchemaModal()">
+            <i class="fa-solid fa-table-cells"></i> View Raw Schema
+          </button>
+        </div>
+      </header>
+
+      <!-- Query Input Hero Box -->
+      <section class="prompt-section glass-panel">
+        <div class="prompt-header">
+          <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Ask Anything in Plain English</h3>
+          <span class="model-badge"><i class="fa-brands fa-google"></i> Gemini 3.8 Flash</span>
+        </div>
+
+        <form id="queryForm" onsubmit="handleQuerySubmit(event)">
+          <div class="input-glass-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input
+              type="text"
+              id="questionInput"
+              placeholder="e.g., Which category has the highest average product price?"
+              autocomplete="off"
+              required
+            />
+            <button type="submit" id="submitBtn" class="send-btn">
+              <span id="btnText">Generate & Run</span>
+              <i class="fa-solid fa-arrow-right" id="btnIcon"></i>
+            </button>
+          </div>
+        </form>
+
+        <!-- Suggested Question Chips -->
+        <div class="suggestions-container">
+          <span class="suggestion-label"><i class="fa-regular fa-lightbulb"></i> Try:</span>
+          <div class="suggestion-chips">
+            <button class="chip" onclick="useSuggestion(this)">Top 5 best selling products?</button>
+            <button class="chip" onclick="useSuggestion(this)">Total revenue by category?</button>
+            <button class="chip" onclick="useSuggestion(this)">Show orders with their customer name and status</button>
+            <button class="chip" onclick="useSuggestion(this)">Average review rating for each product category?</button>
+            <button class="chip" onclick="useSuggestion(this)">Customers who spent more than $1000</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Area -->
+      <section id="resultsArea" class="results-area hidden">
+        <!-- Natural Language Executive Summary -->
+        <div class="summary-card glass-panel">
+          <div class="card-header">
+            <div class="badge-title">
+              <i class="fa-solid fa-sparkles text-accent"></i>
+              <h4>Executive Summary</h4>
+            </div>
+            <span class="execution-time" id="executionTimestamp"></span>
+          </div>
+          <p id="summaryText" class="summary-content"></p>
+        </div>
+
+        <!-- Generated SQL Card -->
+        <div class="sql-card glass-panel">
+          <div class="card-header">
+            <div class="badge-title">
+              <i class="fa-solid fa-code text-accent"></i>
+              <h4>Generated SQL Query</h4>
+            </div>
+            <div class="card-actions">
+              <button class="copy-btn" onclick="copySql()" id="copySqlBtn">
+                <i class="fa-regular fa-copy"></i> Copy SQL
+              </button>
+            </div>
+          </div>
+          <div class="sql-code-wrapper">
+            <pre><code id="sqlDisplay" class="language-sql"></code></pre>
+          </div>
+          <p id="sqlExplanation" class="sql-explanation"></p>
+        </div>
+
+        <!-- Dynamic Visualization Grid -->
+        <div class="analytics-grid">
+          <!-- Chart Panel -->
+          <div class="chart-card glass-panel" id="chartContainer">
+            <div class="card-header">
+              <div class="badge-title">
+                <i class="fa-solid fa-chart-simple text-accent"></i>
+                <h4 id="chartTitle">Data Visualization</h4>
+              </div>
+              <div class="chart-switcher" id="chartSwitcher">
+                <button class="chart-type-btn active" data-type="bar" onclick="switchChartType('bar')"><i class="fa-solid fa-chart-column"></i></button>
+                <button class="chart-type-btn" data-type="line" onclick="switchChartType('line')"><i class="fa-solid fa-chart-line"></i></button>
+                <button class="chart-type-btn" data-type="pie" onclick="switchChartType('pie')"><i class="fa-solid fa-chart-pie"></i></button>
+              </div>
+            </div>
+            <div class="chart-body">
+              <canvas id="resultChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Data Table Panel -->
+          <div class="table-card glass-panel">
+            <div class="card-header">
+              <div class="badge-title">
+                <i class="fa-solid fa-table text-accent"></i>
+                <h4>Live Query Results <span class="row-count-badge" id="rowCountBadge">0 rows</span></h4>
+              </div>
+              <button class="glass-btn-sm" onclick="exportTableToCSV()">
+                <i class="fa-solid fa-download"></i> CSV
+              </button>
+            </div>
+            <div class="table-container">
+              <table id="resultsTable">
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Loading State Overlay -->
+      <div id="loadingOverlay" class="loading-overlay glass-panel hidden">
+        <div class="loader-content">
+          <div class="orb-spinner"></div>
+          <h4>QueryLens is thinking...</h4>
+          <p id="loadingStatusText">Analyzing question with Gemini LLM & synthesizing SQL schema...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Raw Schema Modal -->
+  <div id="schemaModal" class="modal-backdrop hidden" onclick="closeSchemaModal(event)">
+    <div class="modal-content glass-panel" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-database"></i> Database DDL Schema</h3>
+        <button class="close-btn" onclick="closeSchemaModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <pre><code id="modalSchemaContent">Loading schema...</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

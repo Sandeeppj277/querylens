@@ -1,0 +1,21 @@
+# QueryLens - Natural Language to SQL Generator
+# Python 3.14+ compatible
+
+# Web Framework
+fastapi
+uvicorn[standard]
+
+# Database
+sqlalchemy
+
+# LLM Integration
+google-generativeai
+
+# Environment & Config
+python-dotenv
+
+# CORS & HTTP
+pydantic
+
+# Utilities
+python-dateutil
