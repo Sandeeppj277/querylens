@@ -76,4 +76,3 @@ Open **`http://localhost:8000`** in your browser.
 5. Under **Environment Variables**, add:
    - `GEMINI_API_KEY`: `your_gemini_key`
    - `GEMINI_MODEL`: `gemini-3.8-flash`
-6. Click **Deploy Web Service**! Render will give you a live HTTPS public link.
