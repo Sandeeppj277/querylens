@@ -71,16 +71,7 @@ Open **`http://localhost:8000`** in your browser.
 
 ---
 
-## 🌐 Free Cloud Hosting (Render / Railway)
 
-Because this app uses FastAPI (Python), it cannot run solely on static GitHub Pages. You can deploy it for free in minutes using **Render.com**:
-
-1. Push your repository to GitHub.
-2. Sign in to [Render.com](https://render.com) with GitHub.
-3. Click **New +** ➔ **Web Service** ➔ Select your repository.
-4. Set the following settings:
-   - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r backend/requirements.txt && python -c "import sys; sys.path.insert(0, 'backend'); from app.seed import seed; seed()"`
    - **Start Command**: `python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT`
 5. Under **Environment Variables**, add:
    - `GEMINI_API_KEY`: `your_gemini_key`
