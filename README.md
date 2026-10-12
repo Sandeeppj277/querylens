@@ -1,5 +1,11 @@
 # 🗣️ QueryLens — Natural Language to SQL Query Generator
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-brightgreen?style=for-the-badge&logo=render)](https://querylens-wu6i.onrender.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=google)](https://aistudio.google.com/)
+
+🔗 **Live Deployment:** [https://querylens-wu6i.onrender.com/](https://querylens-wu6i.onrender.com/)
+
 QueryLens bridges the gap between non-technical users and relational databases. Ask any business question in plain English, and QueryLens:
 1. Translates the question into optimized, safe SQL using Google Gemini LLM
 2. Executes the query safely against an e-commerce database (SQLite)
@@ -71,8 +77,21 @@ Open **`http://localhost:8000`** in your browser.
 
 ---
 
+## 🌐 Live Cloud Deployment
 
-   - **Start Command**: `python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT`
-5. Under **Environment Variables**, add:
-   - `GEMINI_API_KEY`: `your_gemini_key`
-   - `GEMINI_MODEL`: `gemini-3.8-flash`
+This project is deployed live on Render:
+👉 **[https://querylens-wu6i.onrender.com/](https://querylens-wu6i.onrender.com/)**
+
+### Deployment Configuration (Render)
+- **Environment**: `Python 3`
+- **Build Command**:
+  ```bash
+  pip install -r backend/requirements.txt && python -c "import sys; sys.path.insert(0, 'backend'); from app.seed import seed; seed()"
+  ```
+- **Start Command**:
+  ```bash
+  python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+  ```
+- **Environment Variables**:
+  - `GEMINI_API_KEY`: *(Google AI Studio key)*
+  - `GEMINI_MODEL`: `gemini-3.8-flash`
