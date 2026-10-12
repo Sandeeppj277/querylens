@@ -35,11 +35,3 @@ QueryLens bridges the gap between non-technical users and relational databases. 
 
 ---
 
-
-
-  ```bash
-  python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
-  ```
-- **Environment Variables**:
-  - `GEMINI_API_KEY`: *(Google AI Studio key)*
-  - `GEMINI_MODEL`: `gemini-3.8-flash`
